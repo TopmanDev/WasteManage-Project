@@ -1,0 +1,58 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+dist
+dist-ssr
+build
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.tsbuildinfo
+.eslintcache
+
+# Documentation - exclude all .md files except README.md
+*.md
+!README.md
+
+# Specific documentation files to ignore
+ADMIN_SETUP.md
+backend/ADMIN_SETUP.md
+PROJECT_STRUCTURE.md
+QUICK_START.md
+SETUP_COMPLETE.md
+RUN_INSTRUCTIONS.txt
