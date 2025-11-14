@@ -77,4 +77,3 @@ export const adminAPI = {
 };
 
 export default fetchAPI;
-

@@ -56,3 +56,6 @@ PROJECT_STRUCTURE.md
 QUICK_START.md
 SETUP_COMPLETE.md
 RUN_INSTRUCTIONS.txt
+
+# PowerShell scripts
+*.ps1
