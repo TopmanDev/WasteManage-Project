@@ -1,7 +1,8 @@
 // api.js - Unified API utility for frontend
 
-// Base API URL (remove /api from env, we'll append routes in code)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Base API URL - should NOT include /api suffix, we append routes in the code
+// If VITE_API_URL includes /api, remove it
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
 
 /**
  * Generic fetch wrapper with proper headers, token, and error handling
