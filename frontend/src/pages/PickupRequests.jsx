@@ -38,8 +38,15 @@ const PickupRequests = () => {
 
     try {
       const response = await pickupRequestAPI.getAll();
-      setRequests(response.data);
-      setFilteredRequests(response.data);
+      // Transform data to flatten user information
+      const transformedData = response.data.map(request => ({
+        ...request,
+        userName: request.user ? `${request.user.firstName} ${request.user.lastName}` : 'Unknown User',
+        userEmail: request.user?.email || 'No email',
+        userPhone: request.user?.phoneNumber || 'No phone number'
+      }));
+      setRequests(transformedData);
+      setFilteredRequests(transformedData);
     } catch (err) {
       setError(err.message || 'Failed to fetch requests');
     } finally {
