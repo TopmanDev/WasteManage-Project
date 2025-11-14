@@ -16,9 +16,24 @@ const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const app = express();
 
 // Middleware
-// CORS configuration - allow requests from Vercel frontend
+// CORS configuration - allow requests from multiple origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://waste-manage-project.vercel.app',
+  process.env.CORS_ORIGIN
+].filter(Boolean); // Remove undefined values
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*', // Use environment variable or allow all
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.CORS_ORIGIN === '*') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
