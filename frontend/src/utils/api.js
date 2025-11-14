@@ -14,6 +14,10 @@ const fetchAPI = async (endpoint, options = {}) => {
     // Get token from localStorage (user or admin)
     const token = localStorage.getItem('userToken') || localStorage.getItem('adminToken');
 
+    // Debug logging
+    console.log(`[API] ${options.method || 'GET'} ${API_BASE_URL}${endpoint}`);
+    console.log(`[API] Token present: ${!!token}`);
+
     // Merge headers
     const headers = {
       'Content-Type': 'application/json',
@@ -26,13 +30,33 @@ const fetchAPI = async (endpoint, options = {}) => {
       headers,
     });
 
-    const data = await response.json();
+    // Check content type to determine if response is JSON
+    const contentType = response.headers.get('content-type');
+    let data;
 
-    if (!response.ok) throw new Error(data.message || 'Something went wrong');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      // If not JSON, treat as text
+      const text = await response.text();
+      console.error('[API] Non-JSON response:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType,
+        preview: text.substring(0, 200)
+      });
+      throw new Error(`Server error (${response.status}): Invalid response format. Check server logs.`);
+    }
+
+    console.log(`[API] Response status: ${response.status}`, data);
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || `Error: ${response.status} ${response.statusText}`);
+    }
 
     return data;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('[API Error]', error.message);
     throw error;
   }
 };

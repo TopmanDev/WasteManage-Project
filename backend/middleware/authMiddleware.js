@@ -21,21 +21,29 @@ exports.authenticateUser = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-this');
 
     // Check if user exists
-    const user = await User.findById(decoded.id).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({
+    try {
+      const user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Attach user to request
+      req.user = {
+        id: user._id,
+        email: user.email,
+        role: user.role
+      };
+    } catch (dbError) {
+      console.error('Database query error in authenticateUser:', dbError.message);
+      return res.status(503).json({
         success: false,
-        message: 'User not found'
+        message: 'Database connection error. Please try again later.'
       });
     }
-
-    // Attach user to request
-    req.user = {
-      id: user._id,
-      email: user.email,
-      role: user.role
-    };
 
     next();
 
@@ -81,29 +89,37 @@ exports.authenticateAdmin = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-this');
 
     // Check if admin exists
-    const admin = await Admin.findById(decoded.id).select('-password');
-    
-    if (!admin) {
-      return res.status(404).json({
+    try {
+      const admin = await Admin.findById(decoded.id).select('-password');
+      
+      if (!admin) {
+        return res.status(404).json({
+          success: false,
+          message: 'Admin not found'
+        });
+      }
+
+      // Check if admin is active
+      if (!admin.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin account is deactivated'
+        });
+      }
+
+      // Attach admin to request
+      req.admin = {
+        id: admin._id,
+        email: admin.email,
+        role: admin.role
+      };
+    } catch (dbError) {
+      console.error('Database query error in authenticateAdmin:', dbError.message);
+      return res.status(503).json({
         success: false,
-        message: 'Admin not found'
+        message: 'Database connection error. Please try again later.'
       });
     }
-
-    // Check if admin is active
-    if (!admin.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'Admin account is deactivated'
-      });
-    }
-
-    // Attach admin to request
-    req.admin = {
-      id: admin._id,
-      email: admin.email,
-      role: admin.role
-    };
 
     next();
 
