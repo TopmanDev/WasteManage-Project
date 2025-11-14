@@ -35,11 +35,10 @@ const resetPassword = async () => {
     console.log(`  Name: ${admin.name}`);
     console.log(`  Email: ${admin.email}\n`);
 
-    // Set new password
+    // Set new password (will be hashed by pre-save hook)
     const newPassword = 'Temi2025';
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
     
-    admin.password = hashedPassword;
+    admin.password = newPassword;
     await admin.save();
 
     console.log('===========================================');
