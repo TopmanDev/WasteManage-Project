@@ -59,3 +59,12 @@ RUN_INSTRUCTIONS.txt
 
 # PowerShell scripts
 *.ps1
+
+# Admin scripts - contain sensitive information
+backend/scripts/createAdmin.js
+backend/scripts/resetAdminPassword.js
+backend/scripts/checkAdmin.js
+backend/scripts/testPassword.js
+backend/resetAdminPassword.js
+backend/clearUsers.js
+backend/createTestRequests.js
