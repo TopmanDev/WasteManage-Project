@@ -16,7 +16,13 @@ const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const app = express();
 
 // Middleware
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+// CORS configuration - allow requests from Vercel frontend
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*', // Use environment variable or allow all
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
