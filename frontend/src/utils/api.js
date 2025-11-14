@@ -1,46 +1,34 @@
-// API utility for making HTTP requests to the backend
+// api.js - Unified API utility for frontend
 
-// Base API URL - update this based on environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Base API URL (remove /api from env, we'll append routes in code)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 /**
- * Generic fetch wrapper with error handling
- * @param {string} endpoint - API endpoint
- * @param {object} options - Fetch options
- * @returns {Promise} - Response data
+ * Generic fetch wrapper with proper headers, token, and error handling
+ * @param {string} endpoint - API endpoint starting with /api/...
+ * @param {object} options - Fetch options (method, body, headers)
+ * @returns {Promise<any>} - Response data
  */
 const fetchAPI = async (endpoint, options = {}) => {
   try {
-    // Get token from localStorage (check both user and admin tokens)
-    const userToken = localStorage.getItem('userToken');
-    const adminToken = localStorage.getItem('adminToken');
-    const token = userToken || adminToken;
+    // Get token from localStorage (user or admin)
+    const token = localStorage.getItem('userToken') || localStorage.getItem('adminToken');
 
-    // Merge headers safely so defaults are preserved even when options contains headers
-    const mergedHeaders = {
+    // Merge headers
+    const headers = {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
-    // Add Authorization header if token exists
-    if (token) {
-      mergedHeaders['Authorization'] = `Bearer ${token}`;
-    }
-
-    // Build final fetch options with merged headers; options spread goes after
-    // so other keys (method, body, etc.) in options are preserved.
-    const fetchOptions = {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
-      headers: mergedHeaders,
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
+      headers,
+    });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Something went wrong');
-    }
+    if (!response.ok) throw new Error(data.message || 'Something went wrong');
 
     return data;
   } catch (error) {
@@ -49,128 +37,44 @@ const fetchAPI = async (endpoint, options = {}) => {
   }
 };
 
-// Pickup Request API methods
+/////////////////////////////////////
+// PICKUP REQUEST API METHODS
+/////////////////////////////////////
 export const pickupRequestAPI = {
-  /**
-   * Get current user's own pickup requests (User only)
-   * @returns {Promise} - List of user's pickup requests
-   */
-  getMyRequests: async () => {
-    return fetchAPI('/pickup-requests/my-requests');
+  getMyRequests: () => fetchAPI('/api/pickup-requests/my-requests'),
+  getAll: (filters = {}) => {
+    const query = new URLSearchParams(filters).toString();
+    return fetchAPI(`/api/pickup-requests${query ? `?${query}` : ''}`);
   },
-
-  /**
-   * Get all pickup requests with optional filters (Admin only)
-   * @param {object} filters - Query filters (status, wasteType, startDate, endDate)
-   * @returns {Promise} - List of pickup requests
-   */
-  getAll: async (filters = {}) => {
-    const queryParams = new URLSearchParams(filters).toString();
-    const endpoint = queryParams ? `/pickup-requests?${queryParams}` : '/pickup-requests';
-    return fetchAPI(endpoint);
-  },
-
-  /**
-   * Get a single pickup request by ID
-   * @param {string} id - Pickup request ID
-   * @returns {Promise} - Pickup request data
-   */
-  getById: async (id) => {
-    return fetchAPI(`/pickup-requests/${id}`);
-  },
-
-  /**
-   * Create a new pickup request
-   * @param {object} data - Pickup request data
-   * @returns {Promise} - Created pickup request
-   */
-  create: async (data) => {
-    return fetchAPI('/pickup-requests', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  /**
-   * Update a pickup request
-   * @param {string} id - Pickup request ID
-   * @param {object} data - Updated data
-   * @returns {Promise} - Updated pickup request
-   */
-  update: async (id, data) => {
-    return fetchAPI(`/pickup-requests/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
-
-  /**
-   * Update pickup request status
-   * @param {string} id - Pickup request ID
-   * @param {string} status - New status
-   * @returns {Promise} - Updated pickup request
-   */
-  updateStatus: async (id, status) => {
-    return fetchAPI(`/pickup-requests/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    });
-  },
-
-  /**
-   * Delete a pickup request
-   * @param {string} id - Pickup request ID
-   * @returns {Promise} - Delete confirmation
-   */
-  delete: async (id) => {
-    return fetchAPI(`/pickup-requests/${id}`, {
-      method: 'DELETE',
-    });
-  },
-
-  /**
-   * Get statistics for dashboard
-   * @returns {Promise} - Statistics data
-   */
-  getStatistics: async () => {
-    return fetchAPI('/pickup-requests/statistics');
-  },
+  getById: (id) => fetchAPI(`/api/pickup-requests/${id}`),
+  create: (data) => fetchAPI('/api/pickup-requests', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => fetchAPI(`/api/pickup-requests/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateStatus: (id, status) =>
+    fetchAPI(`/api/pickup-requests/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  delete: (id) => fetchAPI(`/api/pickup-requests/${id}`, { method: 'DELETE' }),
+  getStatistics: () => fetchAPI('/api/pickup-requests/statistics'),
 };
 
-// User API methods
+/////////////////////////////////////
+// USER API METHODS
+/////////////////////////////////////
 export const userAPI = {
-  /**
-   * Get total count of registered users (Admin only)
-   * @returns {Promise} - User count
-   */
-  getUserCount: async () => {
-    return fetchAPI('/users/count');
-  },
-
-  /**
-   * Send forgot password email
-   * @param {string} email - User's email address
-   * @returns {Promise} - Success message
-   */
-  forgotPassword: async (email) => {
-    return fetchAPI('/users/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email })
-    });
-  },
-
-  /**
-   * Reset password with token
-   * @param {string} token - Reset token from email
-   * @param {string} newPassword - New password
-   * @returns {Promise} - Success message
-   */
-  resetPassword: async (token, newPassword) => {
-    return fetchAPI('/users/reset-password', {
-      method: 'POST',
-      body: JSON.stringify({ token, newPassword })
-    });
-  }
+  login: (data) => fetchAPI('/api/users/login', { method: 'POST', body: JSON.stringify(data) }),
+  register: (data) => fetchAPI('/api/users/register', { method: 'POST', body: JSON.stringify(data) }),
+  getUserCount: () => fetchAPI('/api/users/count'),
+  forgotPassword: (email) =>
+    fetchAPI('/api/users/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (token, newPassword) =>
+    fetchAPI('/api/users/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
 };
 
-export default pickupRequestAPI;
+/////////////////////////////////////
+// ADMIN API METHODS
+/////////////////////////////////////
+export const adminAPI = {
+  login: (data) => fetchAPI('/api/admin/login', { method: 'POST', body: JSON.stringify(data) }),
+  getAllUsers: () => fetchAPI('/api/users'), // only if you define GET /api/users
+};
+
+export default fetchAPI;
+
