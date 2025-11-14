@@ -1,6 +1,9 @@
 # 🌱 Solid Waste Pickup & Routing System
 
-A comprehensive MERN stack application for managing solid waste pickup requests and optimizing collection routes. This project supports UN Sustainable Development Goals 11 (Sustainable Cities) and 12 (Responsible Consumption & Production).
+A full-stack MERN application engineered to streamline solid waste pickup operations through automated request handling and algorithm-driven route optimization. The system enhances municipal efficiency, reduces fuel consumption, and improves service responsiveness. This project directly contributes to UN SDG 11 (Sustainable Cities & Communities) and SDG 12 (Responsible Consumption & Production).
+
+## Visit the official website 👋 
+https://waste-manage-project.vercel.app
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)
